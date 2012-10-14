@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>No Tabs, please!</title>
+  <meta name="author" content="Sebastian Paaske Tørholm">
+  <script type='text/javascript' src='jquery-1.8.2.min.js'></script>
+  <style>
+    textarea { width: 100%; height: 400px; }
+    .tabdisplay { display: none; }
+    .codedisplay { background-color: lightgray; }
+    
+    .tab { background-color: red; color: white; }
+    .trailing-whitespace { background-color: blue; color: white; }
+    .longerthan80 { background-color: black; color: white; }
+  </style>
+  <script type="text/javascript">
+    $(document).ready( function () {
+        $('#vistabs').click( function () {
+            var text = $('#tabfield').val();
+            var lines = text.split("\n");
+            var html = "";
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                line = line.replace(/^(.{80})(.+)$/, "$1\u2029$2");
+                
+                line = line.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                
+                line = line.replace(/\u2029(.+)$/, '<span class="longerthan80">$1</span>');
+                
+                tsp = line.match(/(\s+)$/);
+                if (tsp) {
+                    tsp = tsp[1].replace(/\s/g, '&nbsp;');
+                    line = line.replace(/(\s+)$/, '<span class="trailing-whitespace">' + tsp + '</span>');
+                }
+                line = line.replace(/\t/g, '<span class="tab">&nbsp;&nbsp;</span>');
+                html += line + "\n";
+            }
+            
+            $('.codedisplay').html(html);
+            
+            $('#statdisplay').html('');
+            var stathtml = '';
+            var tabs = $('.tab').size();
+            var lt80 = $('.longerthan80').size();
+            var tws  = $('.trailing-whitespace').size();
+            
+            if (tabs > 0) {
+                stathtml += '<p>Du har ' + tabs + ' tab' + (tabs > 1 ? 's' : '') + ' i din kode. ' +
+                             '(Markeret med <span class="tab">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>)</p>';
+            }
+            if (lt80 > 0) {
+                stathtml += '<p>Du har ' + lt80 + ' linje' + (lt80 > 1 ? 'r' : '') + ' af længde > 80 i din kode. ' +
+                            '(Markeret med <span class="longerthan80">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>)</p>';
+            }
+            if (tws > 0) {
+                stathtml += '<p>Du har ' + tws + ' linje' + (tws > 1 ? 'r' : '') + ' med blanktegn i slutningen. ' +
+                            '(Markeret med <span class="trailing-whitespace">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>)</p>';
+            }
+            
+            if (tabs + lt80 + tws == 0) {
+                stathtml += '<p>Hurra! Din kode har ingen af de problemer vi checker for.</p>';
+            }
+            $('#statdisplay').html(stathtml);
+            
+            $('.tabdisplay').css({'display': 'inherit'});
+            $('.tabinput').css({'display': 'none'});
+        });
+        $('#tryagain').click( function () {
+            $('#tabfield').val();
+            
+            $('.tabdisplay').css({'display': 'none'});
+            $('.tabinput').css({'display': 'inherit'});            
+        });
+    });
+  </script>
+</head>
+<body>
+    <h1>Vis mig mine tabs</h1>
+    <p>Siger din instruktor, at du bruger tabs? Kalder han dig en <em>tab</em>er? Føler du dig for<em>tab</em>t?</p>
+    <p>Frygt ej! Kopier blot hele din kode ind i følgende tekstfelt, og tryk "Vis Tabs". Så får du dine tabs vist til dig.</p>
+    <div class="tabinput">
+    <textarea id="tabfield"></textarea>
+    <button id="vistabs">Vis Tabs</button>
+    </div>
+    <div class="tabdisplay">
+    <button id="tryagain">Prøv en gang til</button>
+    <div id="statdisplay"></div>
+    <p>Her er din kode:</p>
+    <pre class="codedisplay"></pre>
+    </div>
+</body>
+</html>
